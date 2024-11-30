@@ -38,6 +38,28 @@ class GitMgt:
             print('파일이 성공적으로 업로드되었습니다!')
         else:
             print('업로드 실패:', response.json())
+           
+    @staticmethod   
+    def refresh_json_list(url, new_data) -> json:
+        def fetch_json_from_url(url):
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    return response.json()  # URL에서 JSON 데이터 가져오기
+                else:
+                    print(f"URL에서 데이터를 가져오지 못했습니다. 상태 코드: {response.status_code}")
+                    return {}
+            except requests.exceptions.RequestException as e:
+                print(f"URL 요청 중 오류 발생: {e}")
+                return {}
+        data_json = fetch_json_from_url(url)
+        if isinstance(new_data, dict):
+            data_json.update(new_data)
+        else:
+            raise ValueError("JSON 파일의 데이터는 dict 형태여야 합니다.")
+        return data_json
+        
+           
             
     def get_github_folder_files(owner, repo, path, branch="main"):
         url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}"
