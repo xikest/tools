@@ -69,3 +69,54 @@ class FirestoreManager:
             return doc.to_dict().get('data_list')
         else:
             return []
+
+
+    def save_db(self, doc_key: str, data_dict: dict = None, collection_name: str = "sample_collection"):
+        """
+        Firestore에 데이터를 저장하는 함수.
+
+        Args:
+            doc_key (str): 문서의 고유 키.
+            data_dict (dict): Firestore에 저장할 데이터. 기본값은 빈 딕셔너리.
+            collection_name (str): Firestore 컬렉션 이름 (기본값: "sample_collection").
+        """
+        if data_dict is None:
+            data_dict = {}
+
+        logging.info(f"Saving document with key: {doc_key}")
+        doc_ref = self.db.collection(collection_name).document(doc_key)
+        logging.info(f"Document reference path: {doc_ref.path}")
+
+        try:
+            doc_ref.set(data_dict)
+            logging.info("Document saved successfully.")
+        except Exception as e:
+            logging.error(f"Error saving document: {e}")
+            
+            
+    def is_doc_key_exist(self, doc_key: str, collection_name: str = "sample_collection") -> bool:
+        """
+        Firestore에서 doc_key가 중복되는지 확인하는 함수.
+
+        Args:
+            doc_key (str): 확인할 문서의 고유 키.
+            collection_name (str): 확인할 컬렉션 이름 (기본값: "sample_collection").
+
+        Returns:
+            bool: 문서가 존재하면 True, 존재하지 않으면 False.
+        """
+        logging.info(f"Checking if document with key '{doc_key}' exists in collection '{collection_name}'")
+        doc_ref = self.db.collection(collection_name).document(doc_key)
+
+        try:
+            doc = doc_ref.get()
+            if doc.exists:
+                logging.info(f"Document with key '{doc_key}' already exists.")
+                return True
+            else:
+                logging.info(f"Document with key '{doc_key}' does not exist.")
+                return False
+        except Exception as e:
+            logging.error(f"Error checking document existence: {e}")
+            return False
+        
