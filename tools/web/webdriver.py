@@ -91,13 +91,31 @@ class WebDriver:
         return scrollDistance
 
     def get_scroll_distance_total(self):
+        def get_scroll_distance(driver):
+            driver = driver
+            # 현재 페이지의 스크롤 위치를 가져옵니다.
+            current_scroll_position = driver.execute_script("return window.scrollY || window.pageYOffset")
+            logging.debug(f"Current scroll position: {current_scroll_position} pixels.")
+            
+            # 스크롤 이벤트를 발생시킵니다.
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(1)
+            
+            # 새로운 스크롤 위치를 가져옵니다.
+            new_scroll_position = driver.execute_script("return window.pageYOffset")
+            # 페이지 이동 거리를 계산합니다.
+            scroll_distance = new_scroll_position - current_scroll_position
+            logging.debug(f"Scrolled distance: {scroll_distance} pixels.")
+            return scroll_distance
+        
+        
         """ 페이지 스크롤의 총 거리를 계산합니다. """
         logging.debug("Calculating total scroll distance.")
         total_scroll_distance = 0
         prev_scroll_distance = -1
         
         while True:
-            scroll_distance = self.__get_scroll_distance__()
+            scroll_distance = get_scroll_distance(self.driver)
             total_scroll_distance += scroll_distance
             if scroll_distance == 0 or scroll_distance == prev_scroll_distance:
                 break
@@ -108,20 +126,9 @@ class WebDriver:
         time.sleep(1)
         logging.debug(f"Total scroll distance: {total_scroll_distance} pixels.")
         return total_scroll_distance
-
-    def __get_scroll_distance__(self):
+    
+    
+    def click_action(self, element):
         driver = self.driver
-        # 현재 페이지의 스크롤 위치를 가져옵니다.
-        current_scroll_position = driver.execute_script("return window.scrollY || window.pageYOffset")
-        logging.debug(f"Current scroll position: {current_scroll_position} pixels.")
-        
-        # 스크롤 이벤트를 발생시킵니다.
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-        time.sleep(1)
-        
-        # 새로운 스크롤 위치를 가져옵니다.
-        new_scroll_position = driver.execute_script("return window.pageYOffset")
-        # 페이지 이동 거리를 계산합니다.
-        scroll_distance = new_scroll_position - current_scroll_position
-        logging.debug(f"Scrolled distance: {scroll_distance} pixels.")
-        return scroll_distance
+        driver.execute_script("arguments[0].click();", element)
+        return None

@@ -51,3 +51,24 @@ class GitMgt:
         else:
             print(f"Error {response.status_code}: {response.json().get('message')}")
             return []
+        
+    
+    @staticmethod 
+    def get_github_files_as_dict(owner, repo, path=""):
+        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+        
+        response = requests.get(url)
+        
+        # 요청이 성공적인지 확인
+        if response.status_code == 200:
+            files = response.json()  # JSON 형식으로 응답
+            file_dict = {}
+
+            for file in files:
+                file_dict[file['name']] = file.get('download_url', None)
+            
+            return file_dict
+        else:
+            print(f"Error: {response.status_code}")
+            return {}
+
