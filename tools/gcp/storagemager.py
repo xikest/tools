@@ -13,11 +13,17 @@ class StorageManager:
             self.client = storage.Client()
         logging.info("Google Cloud Storage client initialized successfully.")
 
-    def upload_file(self, bucket_name, file_path, destination_blob_name):
-        bucket = self.client.get_bucket(bucket_name)
-        blob = bucket.blob(destination_blob_name)
-        blob.upload_from_filename(file_path)
-        logging.info(f"File {file_path} uploaded to {destination_blob_name}.")
+    def upload_file(self, bucket_name, file_path, destination_blob_name, make_public=False):
+            bucket = self.client.get_bucket(bucket_name)
+            blob = bucket.blob(destination_blob_name)
+            blob.upload_from_filename(file_path)
+            
+            if make_public:
+                blob.make_public()
+                logging.info(f"File {destination_blob_name} is now public: {blob.public_url}")
+            
+            logging.info(f"File {file_path} uploaded to {destination_blob_name}.")
+
 
     def download_file(self, bucket_name, blob_name, destination_file_path):
         bucket = self.client.get_bucket(bucket_name)
@@ -56,36 +62,41 @@ class StorageManager:
             logging.error(f"Bucket {bucket_name} does not exist: {e}")
             return False
 
-
-    def get_signed_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1):
-        """
-        버킷에서 파일명이 존재하면 Signed URL을 반환하는 함수
-        
-        Args:
-        bucket_name (str): 검색할 버킷 이름
-        file_name (str): 검색할 파일 이름
-        expiration_hours (int): Signed URL 유효 기간 (기본값은 1시간)
-
-        Returns:
-        str: 파일이 존재하면 Signed URL 반환, 없으면 None 반환
-        """
-        try:
-            bucket = self.client.get_bucket(bucket_name)
-            blobs = bucket.list_blobs()
-
-            for blob in blobs:
-                if blob.name == file_name:
-                    # 파일이 존재하면 Signed URL 생성
-                    url = blob.generate_signed_url(
-                        version="v4",
-                        expiration=timedelta(hours=expiration_hours),  # URL 유효 기간 설정
-                        method="GET"  # GET 메서드를 사용하여 다운로드 가능
-                    )
-                    logging.info(f"File {file_name} found. Signed URL: {url}")
-                    return url
+    def get_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1, use_signed=True):
+            """
+            버킷에서 파일명이 존재하면 Public URL 또는 Signed URL을 반환하는 함수
             
-            logging.info(f"File {file_name} not found in bucket {bucket_name}.")
-            return None
-        except Exception as e:
-            logging.error(f"Error while checking for file: {e}")
-            return None
+            Args:
+            bucket_name (str): 검색할 버킷 이름
+            file_name (str): 검색할 파일 이름
+            expiration_hours (int): Signed URL 유효 기간 (기본값은 1시간)
+            use_signed (bool): True이면 Signed URL을 사용, False이면 Public URL을 사용
+            
+            Returns:
+            str: 파일이 존재하면 Public URL 또는 Signed URL 반환, 없으면 None 반환
+            """
+            try:
+                bucket = self.client.get_bucket(bucket_name)
+                blobs = bucket.list_blobs()
+
+                for blob in blobs:
+                    if blob.name == file_name:
+                        if not use_signed and blob.public_url:
+                            # 공개 URL을 반환
+                            logging.info(f"File {file_name} found. Public URL: {blob.public_url}")
+                            return blob.public_url
+                        
+                        if use_signed:
+                            # Signed URL 생성
+                            url = blob.generate_signed_url(
+                                version="v4",
+                                expiration=timedelta(hours=expiration_hours),  # URL 유효 기간 설정
+                                method="GET"  )
+                            logging.info(f"File {file_name} found. Signed URL: {url}")
+                            return url
+                
+                logging.info(f"File {file_name} not found in bucket {bucket_name}.")
+                return None
+            except Exception as e:
+                logging.error(f"Error while checking for file: {e}")
+                return None
