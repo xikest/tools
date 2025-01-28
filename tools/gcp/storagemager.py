@@ -42,17 +42,7 @@ class StorageManager:
         blob.make_public()
         logging.info(f"File {blob_name} is publicly accessible at: {blob.public_url}")
         return blob.public_url
-
-    def generate_signed_url(self, bucket_name, blob_name, expiration=3600):
-        bucket = self.client.get_bucket(bucket_name)
-        blob = bucket.blob(blob_name)
-        signed_url = blob.generate_signed_url(
-            expiration=timedelta(seconds=expiration),
-            method="GET"
-        )
-        logging.info(f"Generated signed URL: {signed_url}")
-        return signed_url
-
+    
     def bucket_exists(self, bucket_name):
         try:
             self.client.get_bucket(bucket_name)
@@ -62,7 +52,7 @@ class StorageManager:
             logging.error(f"Bucket {bucket_name} does not exist: {e}")
             return False
 
-    def get_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1, use_public=False):
+    def get_url_if_file_exists(self, bucket_name, file_name, signed_expiration_hours=1, use_public=False):
             """
             버킷에서 파일명이 존재하면 Public URL 또는 Signed URL을 반환하는 함수
             
@@ -90,7 +80,7 @@ class StorageManager:
                             # Signed URL 생성
                             url = blob.generate_signed_url(
                                 version="v4",
-                                expiration=timedelta(hours=expiration_hours),  # URL 유효 기간 설정
+                                expiration=timedelta(hours=signed_expiration_hours),  # URL 유효 기간 설정
                                 method="GET"  )
                             logging.info(f"File {file_name} found. Signed URL: {url}")
                             return url
