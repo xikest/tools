@@ -62,7 +62,7 @@ class StorageManager:
             logging.error(f"Bucket {bucket_name} does not exist: {e}")
             return False
 
-    def get_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1, use_public=True):
+    def get_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1, use_public=False):
             """
             버킷에서 파일명이 존재하면 Public URL 또는 Signed URL을 반환하는 함수
             
