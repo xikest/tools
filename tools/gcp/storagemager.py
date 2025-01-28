@@ -56,16 +56,18 @@ class StorageManager:
             logging.error(f"Bucket {bucket_name} does not exist: {e}")
             return False
 
-    def get_public_url_if_file_exists(self, bucket_name, file_name):
-        """
-        버킷에서 파일명을 검색하여 존재하면 공개 URL을 반환하는 함수
 
+    def get_signed_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1):
+        """
+        버킷에서 파일명이 존재하면 Signed URL을 반환하는 함수
+        
         Args:
         bucket_name (str): 검색할 버킷 이름
         file_name (str): 검색할 파일 이름
+        expiration_hours (int): Signed URL 유효 기간 (기본값은 1시간)
 
         Returns:
-        str: 파일이 존재하면 공개 URL 반환, 없으면 None 반환
+        str: 파일이 존재하면 Signed URL 반환, 없으면 None 반환
         """
         try:
             bucket = self.client.get_bucket(bucket_name)
@@ -73,11 +75,14 @@ class StorageManager:
 
             for blob in blobs:
                 if blob.name == file_name:
-                    # 파일이 존재하면 공개 URL 확인 또는 생성
-                    if not blob.public_url:
-                        blob.make_public()
-                    logging.info(f"File {file_name} found. Public URL: {blob.public_url}")
-                    return blob.public_url
+                    # 파일이 존재하면 Signed URL 생성
+                    url = blob.generate_signed_url(
+                        version="v4",
+                        expiration=timedelta(hours=expiration_hours),  # URL 유효 기간 설정
+                        method="GET"  # GET 메서드를 사용하여 다운로드 가능
+                    )
+                    logging.info(f"File {file_name} found. Signed URL: {url}")
+                    return url
             
             logging.info(f"File {file_name} not found in bucket {bucket_name}.")
             return None

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='xik_tools',
-    version='0.72',
+    version='0.73',
     author='xikest',
     description='tools for web',
     packages=find_packages(),
