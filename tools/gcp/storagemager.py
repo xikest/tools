@@ -62,7 +62,7 @@ class StorageManager:
             logging.error(f"Bucket {bucket_name} does not exist: {e}")
             return False
 
-    def get_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1, use_signed=True):
+    def get_url_if_file_exists(self, bucket_name, file_name, expiration_hours=1, use_public=True):
             """
             버킷에서 파일명이 존재하면 Public URL 또는 Signed URL을 반환하는 함수
             
@@ -81,12 +81,12 @@ class StorageManager:
 
                 for blob in blobs:
                     if blob.name == file_name:
-                        if not use_signed and blob.public_url:
+                        if use_public and blob.public_url:
                             # 공개 URL을 반환
                             logging.info(f"File {file_name} found. Public URL: {blob.public_url}")
                             return blob.public_url
                         
-                        if use_signed:
+                        else:
                             # Signed URL 생성
                             url = blob.generate_signed_url(
                                 version="v4",
