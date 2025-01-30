@@ -31,12 +31,14 @@ class StorageManager:
         blob.download_to_filename(destination_file_path)
         logging.info(f"File {blob_name} downloaded to {destination_file_path}.")
 
+    
     def list_files_in_bucket(self, bucket_name):
         bucket = self.client.get_bucket(bucket_name)
         blobs = bucket.list_blobs()
-        blobs_list = [(blob.name, blob.time_created) for blob in blobs]
-        sorted_blobs = sorted(blobs_list, key=lambda x: x[1])  # 생성 날짜 기준으로 정렬
-        return [blob[0] for blob in sorted_blobs]
+        sorted_blobs = sorted(blobs, key=lambda blob: blob.time_created, reverse=True)
+        return [blob.name for blob in sorted_blobs]
+        
+    
 
     def make_file_public(self, bucket_name, blob_name):
         bucket = self.client.get_bucket(bucket_name)
