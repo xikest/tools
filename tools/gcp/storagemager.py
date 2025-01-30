@@ -35,7 +35,7 @@ class StorageManager:
     def list_files_in_bucket(self, bucket_name):
         bucket = self.client.get_bucket(bucket_name)
         blobs = bucket.list_blobs()
-        sorted_blobs = sorted(blobs, key=lambda blob: blob.time_created, reverse=True)
+        sorted_blobs = sorted(blobs, key=lambda blob: blob.time_created)
         return [blob.name for blob in sorted_blobs]
         
     
